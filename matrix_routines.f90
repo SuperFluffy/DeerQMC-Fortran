@@ -1,11 +1,13 @@
 module matrix_routines
     use types
+    use utils
     implicit none
 
     private
 
     public :: diagonal, eye, kronecker
     public :: triangular_lower, triangular_upper
+    public :: gemm_n, gemm_order
 
     interface diagonal !{{{
         module procedure i_diagonal_create
@@ -39,7 +41,18 @@ module matrix_routines
         module procedure q_triangular_lower
     end interface triangular_lower !}}}
 
+    interface gemm_n !{{{
+        module procedure sgemm_n
+        module procedure dgemm_n
+    end interface gemm_n !}}}
+
+    interface gemm_order !{{{
+        module procedure sgemm_order
+        module procedure dgemm_order
+    end interface gemm_order !}}}
+
     contains
+
         ! diagonal {{{
         ! create diagonal {{{
         pure function i_diagonal_create(d) result(m) !{{{
@@ -561,4 +574,78 @@ module matrix_routines
         end function q_triangular_lower !}}}
         !}}}
 
+        ! gemm_n {{{
+    subroutine sgemm_n(m,ms) !{{{
+        real(sp), dimension(:,:), intent(inout) :: m
+        real(sp), dimension(:,:,:), intent(in) :: ms
+
+        real(sp), dimension(:,:), allocatable :: work
+
+        integer, dimension(2) :: sh_m
+        integer, dimension(3) :: sh_ms
+        integer :: i
+
+        integer :: rows, columns, n_arrays
+
+        sh_m = shape(m)
+        rows = sh_m(1)
+        columns = sh_m(2)
+
+        sh_ms = shape(ms)
+
+        if (rows /= columns) then
+            call stop_error("sgemm_n: non-quadratic matrices passed.")
+        else if (rows /= sh_ms(1)) then
+            call stop_error("sgemm_n: row dimension of matrix does not agree with matrices")
+        else if (columns /= sh_ms(2)) then
+            call stop_error("sgemm_n: columns dimension of matrix does not agree with matrices")
+        else
+            n_arrays = sh_ms(3)
+
+            allocate(work(rows,columns))
+
+            do i=1, n_arrays ! call to gemm, such that work = work * ms(1) * ms(2) ... ms(n)
+                call sgemm ('n', 'n', rows, columns, rows, 1.0, m, rows, ms(:,:,i), rows, 0.0, work, rows)
+                m = work
+            end do
+        end if
+    end subroutine sgemm_n !}}}
+
+    subroutine dgemm_n(m,ms) !{{{
+        real(dp), dimension(:,:), intent(inout) :: m
+        real(dp), dimension(:,:,:), intent(in) :: ms
+
+        real(dp), dimension(:,:), allocatable :: work
+
+        integer, dimension(2) :: sh_m
+        integer, dimension(3) :: sh_ms
+        integer :: i
+
+        integer :: rows, columns, n_arrays
+
+        sh_m = shape(m)
+        rows = sh_m(1)
+        columns = sh_m(2)
+
+        sh_ms = shape(ms)
+
+        if (rows /= columns) then
+            call stop_error("dgemm_n: non-quadratic matrices passed.")
+        else if (rows /= sh_ms(1)) then
+            call stop_error("dgemm_n: row dimension of matrix does not agree with matrices")
+        else if (columns /= sh_ms(2)) then
+            call stop_error("dgemm_n: columns dimension of matrix does not agree with matrices")
+        else
+            n_arrays = sh_ms(3)
+
+            allocate(work(rows,columns))
+
+            do i=1, n_arrays
+                ! call to gemm, such that work = work * ms(1) * ms(2) ... ms(n)
+                call dgemm ('n', 'n', rows, columns, rows, 1.0, m, rows, ms(:,:,i), rows, 0.0, work, rows)
+                m = work
+            end do
+        end if
+    end subroutine dgemm_n !}}}
+    !}}} 
 end module matrix_routines
