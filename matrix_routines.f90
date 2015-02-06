@@ -648,4 +648,84 @@ module matrix_routines
         end if
     end subroutine dgemm_n !}}}
     !}}} 
+
+    ! gemm_order {{{
+    subroutine sgemm_order(m,ms,order) !{{{
+        real(sp), dimension(:,:), intent(inout) :: m
+        real(sp), dimension(:,:,:), intent(in) :: ms
+
+        integer, dimension(:), intent(in) :: order
+
+        real(sp), dimension(:,:), allocatable :: work
+
+        integer, dimension(2) :: sh_m
+        integer, dimension(3) :: sh_ms
+        integer :: i,o
+
+        integer :: rows, columns
+
+        o = size(order)
+
+        sh_m = shape(m)
+        rows = sh_m(1)
+        columns = sh_m(2)
+
+        sh_ms = shape(ms)
+
+        if (rows /= columns) then
+            call stop_error("dgemm_n: non-quadratic matrices passed.")
+        else if (rows /= sh_ms(1)) then
+            call stop_error("dgemm_n: row dimension of matrix does not agree with matrices")
+        else if (columns /= sh_ms(2)) then
+            call stop_error("dgemm_n: columns dimension of matrix does not agree with matrices")
+        else
+            allocate(work(rows,columns))
+
+            do i=1, o
+                ! call to gemm, such that work = work * ms(1) * ms(2) ... ms(n)
+                call dgemm ('n', 'n', rows, columns, rows, 1.0, m, rows, ms(:,:,i), rows, 0.0, work, rows)
+                m = work
+            end do
+        end if
+    end subroutine sgemm_order !}}}
+
+    subroutine dgemm_order(m,ms,order) !{{{
+        real(dp), dimension(:,:), intent(inout) :: m
+        real(dp), dimension(:,:,:), intent(in) :: ms
+
+        integer, dimension(:), intent(in) :: order
+
+        real(dp), dimension(:,:), allocatable :: work
+
+        integer, dimension(2) :: sh_m
+        integer, dimension(3) :: sh_ms
+        integer :: i,o
+
+        integer :: rows, columns
+
+        o = size(order)
+
+        sh_m = shape(m)
+        rows = sh_m(1)
+        columns = sh_m(2)
+
+        sh_ms = shape(ms)
+
+        if (rows /= columns) then
+            call stop_error("dgemm_n: non-quadratic matrices passed.")
+        else if (rows /= sh_ms(1)) then
+            call stop_error("dgemm_n: row dimension of matrix does not agree with matrices")
+        else if (columns /= sh_ms(2)) then
+            call stop_error("dgemm_n: columns dimension of matrix does not agree with matrices")
+        else
+            allocate(work(rows,columns))
+
+            do i=1, o
+                ! call to gemm, such that work = work * ms(1) * ms(2) ... ms(n)
+                call dgemm ('n', 'n', rows, columns, rows, 1.0, m, rows, ms(:,:,i), rows, 0.0, work, rows)
+                m = work
+            end do
+        end if
+    end subroutine dgemm_order !}}}
+    ! }}}
 end module matrix_routines
