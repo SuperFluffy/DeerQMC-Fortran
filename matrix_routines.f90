@@ -237,7 +237,7 @@ module matrix_routines
             if (abs(os) < n) then
                 if (os > 0) then
                     u = n - os
-                else if (offset < 0) then
+                else if (os < 0) then
                     l = 1 - os
                 end if
 
