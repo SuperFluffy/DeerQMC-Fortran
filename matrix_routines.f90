@@ -379,101 +379,190 @@ module matrix_routines
         !}}}
 
         ! triangular_upper {{{
-        pure function i_triangular_upper(m) result(r) !{{{
-            integer, dimension(:,:), intent(in) :: m
-            integer, dimension(:,:), allocatable :: r
+        pure function i_triangular_upper(a,offset) result(r) !{{{
+            integer, dimension(:,:), intent(in) :: a
+            integer, intent(in), optional :: offset
 
-            integer, dimension(:), allocatable :: sh
-            integer :: i, j, lim
-
-            sh = shape(m)
-            ! This is currently broken in gfortran 4.9
-            !allocate(r,source=m)
-            ! Workaround:
-            ! The statement r=m requires -standard-semantics in ifort as of 15.*
-            !allocate(r(sh(1), sh(2)))
-            r = m
-
-            lim = min(sh(1),sh(2))
-
-            do j = 1, lim
-                do i = j+1,lim
-                    r(i,j) = 0.0
-                end do
-            end do
-        end function i_triangular_upper !}}}
-
-        pure function s_triangular_upper(m) result(r) !{{{
-            real(sp), dimension(:,:), intent(in) :: m
+            integer :: os
             real(sp), dimension(:,:), allocatable :: r
 
             integer, dimension(:), allocatable :: sh
-            integer :: i, j, lim
+            integer :: i, j, lim, m, n, mn
 
-            sh = shape(m)
+            os = 0
+            if (present(offset)) then
+                os = offset
+            end if
+
+            sh = shape(a)
+            m = sh(1)
+            n = sh(2)
             ! This is currently broken in gfortran 4.9
             !allocate(r,source=m)
             ! Workaround:
             ! The statement r=m requires -standard-semantics in ifort as of 15.*
             !allocate(r(sh(1), sh(2)))
-            r = m
+            allocate(r(m,n))
 
-            lim = min(sh(1),sh(2))
+            r = 0
 
-            do j = 1, lim
-                do i = j+1, lim
-                    r(i,j) = 0.0
+            mn = min(sh(1),sh(2))
+
+            if (os >= 0) then
+                do j = 1+os, n
+                    lim = min(j,mn)
+                    do i = 1, lim
+                        r(i,j) = a(i,j)
+                    end do
                 end do
-            end do
+            else if (os < 0) then
+                do j = 1, n
+                    lim = min(j+abs(os),m)
+                    do i = 1, lim
+                        r(i,j) = a(i,j)
+                    end do
+                end do
+            end if
+        end function i_triangular_upper !}}}
+
+        pure function s_triangular_upper(a,offset) result(r) !{{{
+            real(sp), dimension(:,:), intent(in) :: a
+            integer, intent(in), optional :: offset
+
+            integer :: os
+            real(sp), dimension(:,:), allocatable :: r
+
+            integer, dimension(:), allocatable :: sh
+            integer :: i, j, lim, m, n, mn
+
+            os = 0
+            if (present(offset)) then
+                os = offset
+            end if
+
+            sh = shape(a)
+            m = sh(1)
+            n = sh(2)
+            ! This is currently broken in gfortran 4.9
+            !allocate(r,source=m)
+            ! Workaround:
+            ! The statement r=m requires -standard-semantics in ifort as of 15.*
+            !allocate(r(sh(1), sh(2)))
+            allocate(r(m,n))
+
+            r = 0.0
+
+            mn = min(sh(1),sh(2))
+
+            if (os >= 0) then
+                do j = 1+os, n
+                    lim = min(j,mn)
+                    do i = 1, lim
+                        r(i,j) = a(i,j)
+                    end do
+                end do
+            else if (os < 0) then
+                do j = 1, n
+                    lim = min(j+abs(os),m)
+                    do i = 1, lim
+                        r(i,j) = a(i,j)
+                    end do
+                end do
+            end if
         end function s_triangular_upper !}}}
 
-        pure function d_triangular_upper(m) result(r) !{{{
-            real(dp), dimension(:,:), intent(in) :: m
+        pure function d_triangular_upper(a,offset) result(r) !{{{
+            real(dp), dimension(:,:), intent(in) :: a
+            integer, intent(in), optional :: offset
+
+            integer :: os
             real(dp), dimension(:,:), allocatable :: r
 
             integer, dimension(:), allocatable :: sh
-            integer :: i, j, lim
+            integer :: i, j, lim, m, n, mn
 
-            sh = shape(m)
+            os = 0
+            if (present(offset)) then
+                os = offset
+            end if
+
+            sh = shape(a)
+            m = sh(1)
+            n = sh(2)
             ! This is currently broken in gfortran 4.9
             !allocate(r,source=m)
             ! Workaround:
             ! The statement r=m requires -standard-semantics in ifort as of 15.*
             !allocate(r(sh(1), sh(2)))
-            r = m
+            allocate(r(m,n))
 
-            lim = min(sh(1),sh(2))
+            r = 0.0
 
-            do j = 1, lim
-                do i = j+1, lim
-                    r(i,j) = 0.0
+            mn = min(sh(1),sh(2))
+
+            if (os >= 0) then
+                do j = 1+os, n
+                    lim = min(j-os,mn)
+                    do i = 1, lim
+                        r(i,j) = a(i,j)
+                    end do
                 end do
-            end do
+            else if (os < 0) then
+                do j = 1, n
+                    lim = min(j+abs(os),m)
+                    do i = 1, lim
+                        r(i,j) = a(i,j)
+                    end do
+                end do
+            end if
         end function d_triangular_upper !}}}
 
-        pure function q_triangular_upper(m) result(r) !{{{
-            real(qp), dimension(:,:), intent(in) :: m
+        pure function q_triangular_upper(a,offset) result(r) !{{{
+            real(qp), dimension(:,:), intent(in) :: a
+            integer, intent(in), optional :: offset
+
+            integer :: os
             real(qp), dimension(:,:), allocatable :: r
 
             integer, dimension(:), allocatable :: sh
-            integer :: i, j, lim
+            integer :: i, j, lim, m, n, mn
 
-            sh = shape(m)
+            os = 0
+            if (present(offset)) then
+                os = offset
+            end if
+
+            sh = shape(a)
+            m = sh(1)
+            n = sh(2)
             ! This is currently broken in gfortran 4.9
             !allocate(r,source=m)
             ! Workaround:
             ! The statement r=m requires -standard-semantics in ifort as of 15.*
             !allocate(r(sh(1), sh(2)))
-            r = m
+            allocate(r(m,n))
 
-            lim = min(sh(1),sh(2))
+            r = 0.0
 
-            do j = 1, lim
-                do i = j+1, lim
-                    r(i,j) = 0.0
+            mn = min(sh(1),sh(2))
+
+            if (os >= 0) then
+                do j = 1+os, n
+                    lim = min(j,mn)
+                    do i = 1, lim
+                        r(i,j) = a(i,j)
+                    end do
                 end do
-            end do
+            else if (os < 0) then
+                do j = 1, n
+                    lim = min(j+abs(os),m)
+                    do i = 1, lim
+                        r(i,j) = a(i,j)
+                    end do
+                end do
+            end if
         end function q_triangular_upper !}}}
+
         !}}}
 
         ! triangular_lower {{{
