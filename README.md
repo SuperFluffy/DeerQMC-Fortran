@@ -1,7 +1,8 @@
 MIGRATION TO FORTRAN
 ====================
-The development of DeerQMC in Python has stopped, and the software is slowly
-being moved to Fortran 2008, with direct calls to `LAPACK`.
+The development of DeerQMC in Python has stopped, and the software is in the process
+of being migrated to Fortran 2008. The idea is to implemented all numerically intensive
+parts in Fortran, and expose the routines to Python (or Julia) through a library.
 
 Introduction
 ============
